@@ -5,12 +5,16 @@ const cors = require('cors'); //for front-end and back-end at the same IP
 const db = require('knex')({
   client: 'pg',
   connection: {
-    host : '127.0.0.1',
-    user : 'will',
-    password : '',
-    database : 'input_hours'
+    connectionString: "postgres://input_hours_user:7jykg1EzXBMuivb2St8eUGqcEyH2pQpc@dpg-cm1fa921hbls73ai3tg0-a.singapore-postgres.render.com/input_hours",
+    host: "dpg-cm1fa921hbls73ai3tg0-a",
+    port: 5432,
+    user: "input_hours_user",
+    database: "input_hours",
+    password: '7jykg1EzXBMuivb2St8eUGqcEyH2pQpc',
+    ssl: { rejectUnauthorized: false }
   }
 });
+
 
 const app = express();
 app.use(bodyParser.json());

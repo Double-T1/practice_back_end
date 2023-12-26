@@ -20,7 +20,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-for checking through POSTMAN only
+//for checking through POSTMAN only
 app.listen(3000, () => {
 	console.log("we're on 3000");
 })

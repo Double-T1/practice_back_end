@@ -20,8 +20,21 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+for checking through POSTMAN only
 app.listen(3000, () => {
 	console.log("we're on 3000");
+})
+
+app.get("/alluser", (req,res) => {
+	db.select("*").from("users")
+		.then(user => {
+			if (user.length) {
+				res.json(user);
+			} else {
+				res.json("no user");
+			}
+		})
+		.catch(err => res.status(400).json("server issue"))
 })
 
 app.get("/", (req,res) => {

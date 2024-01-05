@@ -80,10 +80,8 @@ app.post("/signin", (req,res) => {
 	db.select("*").from("users")
 		.where("email","=",email)
 		.then(user => {
-			console.log(user);
 			if (user.length) {
 				bcrypt.compare(password, user[0].password, (error, result) => {
-					console.log(result);
 					if (result) {
 						res.json(user[0]);
 					} else {
@@ -121,6 +119,95 @@ app.get("/profile/:id", (req,res) => {
 			}
 		})
 		.catch(err => res.status(400).json("invalid search"));
+})
+
+app.put("/profile/update/changeName", (req,res) => {
+	const { email, currentName, newName } = req.body;
+	//1. the currentNameis correct
+	//2. update to the new name
+	//step 1
+	db("users")
+		.returning("name")
+		.where("email","=",email)
+		.andWhere("name","=",currentName)
+		.then(user => {
+			if (!user.length) {
+				res.status(400).json("user not found");
+			}
+		})
+
+	//step 2
+	db("users")
+	    .returning("*")
+			.update({
+				name: newName
+			})
+			.then(newUser => {
+				res.json(newUser[0]);
+			})
+			.catch(err => res.status(400).json("update process went wrong, please try again"));
+})
+
+app.put("/profile/update/changeEmail", (req,res) => {
+	const { currentEmail, newEmail } = req.body;
+	//step 1
+	db("users")
+		.returning("name")
+		.where("email","=",currentEmail)
+		.then(user => {
+			if (!user.length) {
+				res.status(400).json("user not found");
+			}
+		})
+
+	//step 2
+	db("users")
+	    .returning("*")
+			.update({
+				email: newEmail
+			})
+			.then(newUser => {
+				if (newUser.length) {
+					res.json(newUser[0]);
+				} else {
+					res.json("email already taken, choose another one");
+				}
+			})
+			.catch(err => res.status(400).json("update process went wrong, please try again"));
+})
+
+app.put("/profile/update/changePassword", (req,res) => {
+	const { email, currentPassword, newPassword } = req.body;
+	//1. the currentPassword is correct
+	//2. update to the new password
+	//step 1
+	db("users")
+		.returning("password")
+		.where("email","=",email)
+		.then(user => {
+			if (!user.length) {
+				res.status(400).json("user not found");
+			} else {
+				bcrypt.compare(currentPassword, user[0].password, (error, result) => {
+					if (!result) {
+						res.json("current password is incorrect");
+					} 
+				})
+			}
+		})
+
+	//step 2
+	bcrypt.hash(newPassword, saltRounds, (error, hash) => {
+    db("users")
+	    .returning("*")
+			.update({
+				password: hash
+			})
+			.then(newUser => {
+				res.json(newUser[0]);
+			})
+			.catch(err => res.status(400).json("update process went wrong, please try again"))
+	 })
 })
 
 app.delete("/delete/:id", (req,res) => {

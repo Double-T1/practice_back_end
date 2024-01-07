@@ -15,7 +15,7 @@ const db = require('knex')({
     ssl: { rejectUnauthorized: false }
   }
 });
-const { base, allUser, deleteAll } = require("./sudo/sudo.js");
+const { base, allUser, deleteAll } = require("./admin/admin.js");
 //for password encryption
 const bcrypt = require('bcrypt');
 const saltRounds = 10;

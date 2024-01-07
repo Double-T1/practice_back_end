@@ -15,6 +15,7 @@ const db = require('knex')({
     ssl: { rejectUnauthorized: false }
   }
 });
+const { base, allUser, deleteAll } = require("./sudo/sudo.js");
 //for password encryption
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
@@ -29,32 +30,9 @@ app.listen(3000, () => {
 	console.log("we're on 3000");
 })
 
-app.get("/allUser", (req,res) => {
-	console.log("haha");
-	db.select("*").from("users")
-		.then(user => {
-			if (user.length) {
-				res.json(user);
-			} else {
-				res.json("no user");
-			}
-		})
-		.catch(err => res.status(400).json("server issue"))
-})
-
-app.get("/", (req,res) => {
-	return res.json("front page");
-})
-
-app.delete("/deleteAll", (req,res) => {
-	db("users")
-		.returning("name")
-		.del()
-		.then(() => {
-			res.json("all data is deleted"); 
-		})
-		.catch(err => res.status(400).json("something went wrong"));
-})
+base(app);
+allUser(app,db);
+deleteAll(app,db);
 
 
 app.post("/register", (req,res) => {

@@ -24,4 +24,10 @@ const deleteAll = (app,db) => { app.delete("/deleteAll", (req,res) => {
 		.catch(err => res.status(400).json("something went wrong"));
 })}
 
-module.exports = { base, allUser, deleteAll };
+const admin = (app, db) => {
+	base(app);
+	allUser(app,db);
+	deleteAll(app,db);
+}
+
+module.exports = admin;

@@ -38,23 +38,23 @@ const profile_update_changeEmail = (app,db) => {
 			.then(user => {
 				if (!user.length) {
 					res.status(400).json("user not found");
+				} else {
+					//step2
+					db("users")
+				    .returning("*")
+					.update({
+						email: newEmail
+					})
+					.then(newUser => {
+						if (newUser.length) {
+							res.json(newUser[0]);
+						} else {
+							res.json("email already taken, choose another one");
+						}
+					})
+					.catch(err => res.status(400).json("update process went wrong, please try again"));
 				}
 			})
-
-		//step 2
-		db("users")
-		    .returning("*")
-				.update({
-					email: newEmail
-				})
-				.then(newUser => {
-					if (newUser.length) {
-						res.json(newUser[0]);
-					} else {
-						res.json("email already taken, choose another one");
-					}
-				})
-				.catch(err => res.status(400).json("update process went wrong, please try again"));
 	})
 }
 
@@ -71,19 +71,19 @@ const profile_update_changeName = (app,db) => {
 			.then(user => {
 				if (!user.length) {
 					res.status(400).json("user not found");
+				} else {
+					//step 2
+					db("users")
+				    .returning("*")
+					.update({
+						name: newName
+					})
+					.then(newUser => {
+						res.json(newUser[0]);
+					})
+					.catch(err => res.status(400).json("update process went wrong, please try again"));
 				}
 			})
-
-		//step 2
-		db("users")
-		    .returning("*")
-				.update({
-					name: newName
-				})
-				.then(newUser => {
-					res.json(newUser[0]);
-				})
-				.catch(err => res.status(400).json("update process went wrong, please try again"));
 	})
 }
 
@@ -107,14 +107,14 @@ const profile_update_changePassword = (app,db,bcrypt,saltRounds) => {
 						//step 2
 						bcrypt.hash(newPassword, saltRounds, (error, hash) => {
 						    db("users")
-							    .returning("*")
-									.update({
-										password: hash
-									})
-									.then(newUser => {
-										res.json(newUser[0]);
-									})
-									.catch(err => res.status(400).json("update process went wrong, please try again"))
+						    .returning("*")
+							.update({
+								password: hash
+							})
+							.then(newUser => {
+								res.json(newUser[0]);
+							})
+							.catch(err => res.status(400).json("update process went wrong, please try again"))
 						})
 					}
 				})
@@ -127,17 +127,17 @@ const delete_id = (app,db) => {
 	app.delete("/delete/:id", (req,res) => {
 		const { id } = req.params;
 		db("users")
-			.returning("name")
-			.where("id","=",id)
-			.del()
-			.then(name => {
-				if (name.length) {
-					res.json(name[0]);
-				} else {
-					 res.json("non-existent user")
-				}
-			})
-			.catch(err => res.status(400).json("something went wrong"));
+		.returning("name")
+		.where("id","=",id)
+		.del()
+		.then(name => {
+			if (name.length) {
+				res.json(name[0]);
+			} else {
+				 res.json("non-existent user")
+			}
+		})
+		.catch(err => res.status(400).json("something went wrong"));
 	})
 }
 

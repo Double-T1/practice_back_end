@@ -30,9 +30,9 @@ app.use(bodyParser.json());
 app.use(cors());
 
 //for checking through POSTMAN on localhost
-// app.listen(3000, () => {
-// 	console.log("we're on 3000");
-// })
+app.listen(3000, () => {
+	console.log("we're on 3000");
+})
 
 admin(app,db); //for admin use only
 welcome(app,db,bcrypt,saltRounds); //for the welcome home page	

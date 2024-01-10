@@ -19,7 +19,7 @@ const register = (app,db,bcrypt,saltRounds) => {
 }
 
 const signin = (app,db,bcrypt) => {
-	app.post("/signin", (req,res) => {
+	app.get("/signin", (req,res) => {
 		const { email, password } = req.body;
 		db.select("*")
 		.from("users")

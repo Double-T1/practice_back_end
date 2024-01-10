@@ -1,14 +1,94 @@
-const input = (app,db) => {
-	app.put("/input", (req,res) => {
-		const { id, inputMins } = req.body;
+const updateInput = (app,db) => {
+	const isSmaller = (date1, date2) => {
+		if (date1.getFullYear() < date2.getFullYear()) {
+			return true;
+		} else if (date1.getFullYear() > date2.getFullYear()) {
+			return false;
+		} else {
+			if (date1.getMonth() < date2.getMonth()) {
+				return true;
+			} else if (date1.getMonth() > date2.getMonth()) {
+				return false;
+			} else {
+				if (date1.getDate() < date2.getDate()) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+	}
+
+	//f(a,b), if b is the same of a return 0, if b is the next day of a return 1, if neither return 2 
+	const compareDays = (lastInputDate, stringDate) => {
+		if (!lastInputDate) return 2; //first submission ever
+		const newInputDate = new Date(stringDate.slice(1,11));
+		
+		if (isSmaller(lastInputDate,newInputDate)) {
+			lastInputDate.setDate(lastInputDate.getDate()+1);
+			if (isSmaller(lastInputDate,newInputDate)) {
+				return 2;
+			} else if (isSmaller(newInputDate,lastInputDate)) {
+				console.log("something is wrong, this is not suppose to happen");
+				return -1;
+			} else {
+				return 1;
+			}
+		} else if (isSmaller(newInputDate,lastInputDate)) {
+			console.log("something is wrong, this is not suppose to happen");
+			return -1;
+		} else {
+			return 0;
+		}
+	}
+
+	app.put("/updateInput", (req,res) => {
+		const { id, inputMins, newInputDate } = req.body;
 		db("users")
-			.returning("todayMins")
 			.where("id","=",id)
-			.increment("todayMins",inputMins)
-			.then(todayMinutes => {
-				res.json(todayMinutes[0].todayMins);
+			.select("lastinputdate")
+			.then(lastInputDate => {
+				const ans = compareDays(lastInputDate[0].lastinputdate,newInputDate);
+				
+				//ans === 0 same day, ans === 1 next day, ans === 2 many days later, 
+				//ans === -1 the last date is newer than the new date, not suppose to happen
+				//is conditional chaing possible so that we don't have to repeat a lot of the same code here
+				if (ans === 0) {
+					db("users")
+						.returning(["todaymins","totalmins","totaldays","streaks"])
+						.where("id","=",id)
+						.increment("todaymins",inputMins)
+						.increment("totalmins",inputMins)
+						.update("lastinputdate", newInputDate)
+						.then(info => res.json(info[0]))
+						.catch(err => res.status(400).json("at ans == 0, something went wrong"))
+				} else if (ans === 1) {
+					//for counting streaks
+					db("users")
+						.returning(["todaymins","totalmins","totaldays","streaks"])
+						.where("id","=",id)
+						.increment("todaymins",inputMins)
+						.increment("totalmins",inputMins)
+						.increment("totaldays",1)
+						.increment("streaks",1)
+						.update("lastinputdate", newInputDate)
+						.then(info => res.json(info[0]))
+						.catch(err => res.status(400).json("at ans == 1, something went wrong"))
+				} else if (ans === 2) {
+					db("users")
+						.returning(["todaymins","totalmins","totaldays","streaks"])
+						.where("id","=",id)
+						.increment("todaymins",inputMins)
+						.increment("totalmins",inputMins)
+						.increment("totaldays",1)
+						.update("streaks",1)
+						.update("lastinputdate", newInputDate)
+						.then(info => res.json(info[0]))
+						.catch(err => res.status(400).json("at ans == 2, something went wrong"))
+				} else {
+					res.status(400).json("something went wrong with the dates, please contact the admin for further updates");
+				}
 			})
-			.catch(err => res.status(400).json("an error occured, please try later"))
 	})
 }
 
@@ -41,18 +121,18 @@ const profile_update_changeEmail = (app,db) => {
 				} else {
 					//step2
 					db("users")
-				    .returning("*")
-					.update({
-						email: newEmail
-					})
-					.then(newUser => {
-						if (newUser.length) {
-							res.json(newUser[0]);
-						} else {
-							res.json("email already taken, choose another one");
-						}
-					})
-					.catch(err => res.status(400).json("update process went wrong, please try again"));
+					    .returning("*")
+						.update({
+							email: newEmail
+						})
+						.then(newUser => {
+							if (newUser.length) {
+								res.json(newUser[0]);
+							} else {
+								res.json("email already taken, choose another one");
+							}
+						})
+						.catch(err => res.status(400).json("update process went wrong, please try again"));
 				}
 			})
 	})
@@ -142,7 +222,7 @@ const delete_id = (app,db) => {
 }
 
 const content = (app,db,bcrypt,saltRounds) => {
-	input(app,db);
+	updateInput(app,db);
 	profile_id(app,db);
 	profile_update_changeName(app,db);
 	profile_update_changeEmail(app,db);

@@ -1,12 +1,12 @@
 const input = (app,db) => {
 	app.put("/input", (req,res) => {
-		const { id, minutes } = req.body;
+		const { id, inputMins } = req.body;
 		db("users")
-			.returning("minutes")
+			.returning("todayMins")
 			.where("id","=",id)
-			.increment("minutes",minutes)
-			.then(totalMinutes => {
-				res.json(totalMinutes[0].minutes);
+			.increment("todayMins",inputMins)
+			.then(todayMinutes => {
+				res.json(todayMinutes[0].todayMins);
 			})
 			.catch(err => res.status(400).json("an error occured, please try later"))
 	})

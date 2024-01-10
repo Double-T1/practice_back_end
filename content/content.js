@@ -49,13 +49,13 @@ const updateInput = (app,db) => {
 			.select("lastinputdate")
 			.then(lastInputDate => {
 				const ans = compareDays(lastInputDate[0].lastinputdate,newInputDate);
-				
+				const target = ["todaymins","totalmins","totaldays","streaks"];
 				//ans === 0 same day, ans === 1 next day, ans === 2 many days later, 
 				//ans === -1 the last date is newer than the new date, not suppose to happen
 				//is conditional chaing possible so that we don't have to repeat a lot of the same code here
 				if (ans === 0) {
 					db("users")
-						.returning(["todaymins","totalmins","totaldays","streaks"])
+						.returning(target)
 						.where("id","=",id)
 						.increment("todaymins",inputMins)
 						.increment("totalmins",inputMins)
@@ -65,7 +65,7 @@ const updateInput = (app,db) => {
 				} else if (ans === 1) {
 					//for counting streaks
 					db("users")
-						.returning(["todaymins","totalmins","totaldays","streaks"])
+						.returning(target)
 						.where("id","=",id)
 						.increment("todaymins",inputMins)
 						.increment("totalmins",inputMins)
@@ -76,7 +76,7 @@ const updateInput = (app,db) => {
 						.catch(err => res.status(400).json("at ans == 1, something went wrong"))
 				} else if (ans === 2) {
 					db("users")
-						.returning(["todaymins","totalmins","totaldays","streaks"])
+						.returning(target)
 						.where("id","=",id)
 						.increment("todaymins",inputMins)
 						.increment("totalmins",inputMins)

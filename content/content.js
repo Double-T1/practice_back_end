@@ -113,7 +113,9 @@ const updateDailyGoal = (app,db) => {
 			.update({
 				dailygoal: newDailyGoal
 			})
-			.then(updatedGoal => res.json(updatedGoal[0]))
+			.then(updatedGoal => {
+				res.json(updatedGoal[0])
+			})
 			.catch(err => console.log(err))
 	})
 }

@@ -104,6 +104,20 @@ const updateStreaks = (app,db) => {
 	})
 }
 
+const updateDailyGoal = (app,db) => {
+	app.put("/updateDailyGoal", (req,res) => {
+		const { id, newDailyGoal } = req.body;
+		db("users")
+			.returning("dailygoal")
+			.where("id","=",id)
+			.update({
+				dailygoal: newDailyGoal
+			})
+			.then(updatedGoal => res.json(updatedGoal[0]))
+			.catch(err => console.log(err))
+	})
+}
+
 const profile_id = (app,db) => {
 	app.get("/profile/:id", (req,res) => {
 		const { id } = req.params;
@@ -236,6 +250,7 @@ const delete_id = (app,db) => {
 const content = (app,db,bcrypt,saltRounds) => {
 	updateInput(app,db);
 	updateStreaks(app,db);
+	updateDailyGoal(app,db);
 	profile_id(app,db);
 	profile_update_changeName(app,db);
 	profile_update_changeEmail(app,db);

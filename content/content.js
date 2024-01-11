@@ -92,6 +92,18 @@ const updateInput = (app,db) => {
 	})
 }
 
+const updateStreaks = (app,db) => {
+	app.put("/updateStreaks", (req,res) => {
+		const { id, newStreak } = req.body;
+		db("users")
+			.returning("streaks")
+			.where("id","=",id)
+			.update("streaks",newStreak)
+			.then(streaks => res.json(streaks[0]))
+			.catch(err => res.status(400).json("something went wrong while updating streaks"))
+	})
+}
+
 const profile_id = (app,db) => {
 	app.get("/profile/:id", (req,res) => {
 		const { id } = req.params;
@@ -223,6 +235,7 @@ const delete_id = (app,db) => {
 
 const content = (app,db,bcrypt,saltRounds) => {
 	updateInput(app,db);
+	updateStreaks(app,db);
 	profile_id(app,db);
 	profile_update_changeName(app,db);
 	profile_update_changeEmail(app,db);

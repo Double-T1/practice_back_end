@@ -46,7 +46,7 @@ const login = (app,db,bcrypt,jwt) => {
 
 			// Generate a JWT token
 			//second argument secretKey can be changed in the future
-   			const token = jwt.sign({ userId: user.id }, "secretKey");
+   			const token = await jwt.sign({ id: user[0].id }, "secretKey");
    			res.json({token});
 		} catch (error) {
 			if (error.cause === "known") {

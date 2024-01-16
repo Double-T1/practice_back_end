@@ -15,13 +15,14 @@ const db = require('knex')({
     ssl: { rejectUnauthorized: false }
   }
 });
+//for password encryption
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 //my functions
 const admin = require("./admin/admin.js");
 const welcome = require("./welcome/welcome.js");
 const content = require("./content/content.js");
-//for password encryption
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
+
 
 
 const app = express();

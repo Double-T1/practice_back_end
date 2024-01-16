@@ -1,20 +1,48 @@
 const register = (app,db,bcrypt,saltRounds) => {
-	app.post("/register", (req,res) => {
+	// app.post("/register", (req,res) => {
+	// 	const { name, email, password } = req.body;
+	// 	bcrypt.hash(password, saltRounds, (error, hash) => {
+	// 	    db("users")
+	// 		.returning("*")
+	// 		.insert({
+	// 			name: name,
+	// 			email: email,
+	// 			password: hash,
+	// 			joined: new Date()
+	// 		})
+	// 		.then(newUser => {
+	// 			res.json(newUser[0]);
+	// 		})
+	// 		.catch(err => res.status(400).json("invalid registration"))
+	//   	})
+	// })
+
+	app.post("/register", async (req,res) => {
 		const { name, email, password } = req.body;
-		bcrypt.hash(password, saltRounds, (error, hash) => {
-	    db("users")
-		.returning("*")
-		.insert({
-			name: name,
-			email: email,
-			password: hash,
-			joined: new Date()
-		})
-		.then(newUser => {
+		try {
+			//how to deal with error ?? 
+			const hashed = await bcrypt.hash(password,saltRounds, (error, hashed) => {
+				if (error) {	
+					return error;
+				}
+				return hashed;
+			});
+
+			const newUser = await db("users").returning("*").insert({
+				name: name,
+				email: email,
+				password: hashed,
+				joined: new Date() //not the best practice given that the date should be determined by the client 
+			})
+
 			res.json(newUser[0]);
-		})
-		.catch(err => res.status(400).json("invalid registration"))
-	  })
+		} catch (error) {
+			if (error.detail = "users_email_key") {
+				res.status(400).json("email already registered, please try another email");
+			} else {
+				res.status(400).json("invalid registration");
+			}
+		}
 	})
 }
 

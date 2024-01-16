@@ -29,8 +29,8 @@ const register = (app,db,bcrypt,saltRounds) => {
 //1. email doesn't exist
 //2. passwword doesn't match
 //3. other issues
-const signin = (app,db,bcrypt) => {
-	app.post("/signin", async (req,res) => {
+const login = (app,db,bcrypt,jwt) => {
+	app.post("/login", async (req,res) => {
 		const { email, password } = req.body;
 
 		try {
@@ -40,11 +40,14 @@ const signin = (app,db,bcrypt) => {
 			}
 
 			const validPassword = await bcrypt.compare(password, user[0].password);
-			if (validPassword) {
-				res.json(user[0]);
-			} else {
+			if (!validPassword) {
 				throw new Error("password doesn't match", {cause: "known"});
-			}
+			} 
+
+			// Generate a JWT token
+			//second argument secretKey can be changed in the future
+   			const token = jwt.sign({ userId: user.id }, "secretKey");
+   			res.json({token});
 		} catch (error) {
 			if (error.cause === "known") {
 				res.status(400).json(error.message);
@@ -55,9 +58,9 @@ const signin = (app,db,bcrypt) => {
 	}) 
 }
 
-const welcome = (app,db,bcrypt,saltRounds) => {
+const welcome = (app,db,bcrypt,saltRounds,jwt) => {
 	register(app,db,bcrypt,saltRounds);
-	signin(app,db,bcrypt);
+	login(app,db,bcrypt,jwt);
 }
 
 

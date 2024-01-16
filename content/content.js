@@ -1,3 +1,22 @@
+const authenticateUser = (jwt) => async (req,res,next) => {
+	try {
+		const authHeader = req.headers.authorization.split(' ');
+		if (!authHeader) {
+			res.send(401, "Unauthorized user");
+		} 
+		const token = authHeader[1];
+	    // Verify the token
+	    const decodedToken = await jwt.verify(token, 'secretKey');
+	    // Attach the user ID to the request object
+	    req.body.id = decodedToken.id;
+	    
+	    next();
+	} catch (error) {
+		console.error('Error authenticating user:', error);
+    	res.status(401).json({ error: 'Unauthorized' });
+	}
+}
+
 const updateInput = (app,db) => {
 	const isSmaller = (date1, date2) => {
 		if (date1.getFullYear() < date2.getFullYear()) {
@@ -92,15 +111,23 @@ const updateInput = (app,db) => {
 	})
 }
 
-const updateStreaks = (app,db) => {
-	app.put("/updateStreaks", (req,res) => {
-		const { id, newStreak } = req.body;
-		db("users")
-			.returning("streaks")
-			.where("id","=",id)
-			.update("streaks",newStreak)
-			.then(streaks => res.json(streaks[0]))
-			.catch(err => res.status(400).json("something went wrong while updating streaks"))
+const updateStreaks = (app,db,jwt) => {
+	app.put("/updateStreaks", authenticateUser(jwt), async (req,res) => {
+		try {
+			const { id, newStreak } = req.body;
+			const streaks = await db("users").returning("streaks").where("id","=",id).update("streaks",newStreak);
+
+			if (!streaks.length)
+				throw new Error("connection with the database has an issue", {cause: "known"});
+
+			res.json(streaks[0]);
+		} catch(error) {
+			if (error.cause === "known") {
+				res.status(400).json(error.message);
+			} else {
+				res.status(400).json("uncertain error");
+			}
+		}
 	})
 }
 
@@ -249,9 +276,9 @@ const delete_id = (app,db) => {
 	})
 }
 
-const content = (app,db,bcrypt,saltRounds) => {
+const content = (app,db,bcrypt,saltRounds,jwt) => {
 	updateInput(app,db);
-	updateStreaks(app,db);
+	updateStreaks(app,db,jwt);
 	updateDailyGoal(app,db);
 	profile_id(app,db);
 	profile_update_changeName(app,db);

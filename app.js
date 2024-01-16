@@ -1,5 +1,4 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 //for front-end and back-end at the same IP
 const cors = require('cors'); 
 //library for linking to the database
@@ -18,6 +17,8 @@ const db = require('knex')({
 //for password encryption
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+//for authentification
+const jwt= require('jsonwebtoken');
 //my functions
 const admin = require("./admin/admin.js");
 const welcome = require("./welcome/welcome.js");
@@ -26,7 +27,8 @@ const content = require("./content/content.js");
 
 
 const app = express();
-app.use(bodyParser.json());
+//the purpose of this??
+app.use(express.json());
 //for local use only
 app.use(cors());
 
@@ -36,6 +38,6 @@ app.listen(3000, () => {
 })
 
 admin(app,db); //for admin use only
-welcome(app,db,bcrypt,saltRounds); //for the welcome home page	
+welcome(app,db,bcrypt,saltRounds,jwt); //for the welcome home page	
 content(app,db,bcrypt,saltRounds); //for the actual content page
 

@@ -132,18 +132,19 @@ const updateStreaks = (app,db,jwt) => {
 }
 
 const updateDailyGoal = (app,db,jwt) => {
-	app.put("/updateDailyGoal", authenticateUser(jwt), (req,res) => {
-		const { id, newDailyGoal } = req.body;
-		db("users")
-			.returning("dailygoal")
-			.where("id","=",id)
-			.update({
-				dailygoal: newDailyGoal
-			})
-			.then(updatedGoal => {
-				res.json(updatedGoal[0])
-			})
-			.catch(err => console.log(err))
+	app.put("/updateDailyGoal", authenticateUser(jwt), async (req,res) => {
+		try {
+			const { id, newDailyGoal } = req.body;
+			const updatedGoal = await db("users").returning("dailygoal")
+				.where("id","=",id).update({
+					dailygoal: newDailyGoal
+				});
+
+			res.json(updatedGoal[0]);
+		} catch (error) {
+			res.status(401).json("Unable to recognize the id");
+		}
+		
 	})
 }
 

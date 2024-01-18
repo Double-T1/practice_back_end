@@ -17,7 +17,7 @@ const authenticateUser = (jwt) => async (req,res,next) => {
 	}
 }
 
-const updateInput = (app,db) => {
+const updateInput = (app,db,jwt) => {
 	const isSmaller = (date1, date2) => {
 		if (date1.getFullYear() < date2.getFullYear()) {
 			return true;
@@ -61,7 +61,7 @@ const updateInput = (app,db) => {
 		}
 	}
 
-	app.put("/updateInput", (req,res) => {
+	app.put("/updateInput", authenticateUser(jwt), (req,res) => {
 		const { id, inputMins, newInputDate } = req.body;
 		db("users")
 			.where("id","=",id)
@@ -131,8 +131,8 @@ const updateStreaks = (app,db,jwt) => {
 	})
 }
 
-const updateDailyGoal = (app,db) => {
-	app.put("/updateDailyGoal", (req,res) => {
+const updateDailyGoal = (app,db,jwt) => {
+	app.put("/updateDailyGoal", authenticateUser(jwt), (req,res) => {
 		const { id, newDailyGoal } = req.body;
 		db("users")
 			.returning("dailygoal")
@@ -277,14 +277,14 @@ const delete_id = (app,db) => {
 }
 
 const content = (app,db,bcrypt,saltRounds,jwt) => {
-	updateInput(app,db);
+	updateInput(app,db,jwt);
 	updateStreaks(app,db,jwt);
-	updateDailyGoal(app,db);
-	profile_id(app,db);
-	profile_update_changeName(app,db);
-	profile_update_changeEmail(app,db);
-	profile_update_changePassword(app,db,bcrypt,saltRounds);
-	delete_id(app,db);
+	updateDailyGoal(app,db,jwt);
+	profile_id(app,db,jwt);
+	profile_update_changeName(app,db,jwt);
+	profile_update_changeEmail(app,db,jwt);
+	profile_update_changePassword(app,db,bcrypt,saltRounds,jwt);
+	delete_id(app,db,jwt);
 }
 
 module.exports = content;

@@ -148,7 +148,7 @@ const updateDailyGoal = (app,db,jwt) => {
 	})
 }
 
-const profile_id = (app,db) => {
+const profile_id = async (app,db) => {
 	app.get("/profile/:id", (req,res) => {
 		const { id } = req.params;
 		db.select("*").from("users")

@@ -1,3 +1,12 @@
+const nodemailer = require('nodemailer');
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'seaox237@gmail.com',
+    pass: 'ihtj hqsy zhhz ozli'
+  }
+});
+
 const register = (app,db,bcrypt,saltRounds) => {
 	app.post("/register", async (req,res) => {
 		const { name, email, password } = req.body;
@@ -7,6 +16,21 @@ const register = (app,db,bcrypt,saltRounds) => {
 			if (!hash) {
 				throw new Error("password not encrypted", {cause: "known"});
 			}
+
+			var mailOptions = {
+			  from: 'seaox237@gmail.com',
+			  to: email,
+			  subject: 'Sending Email using Node.js',
+			  text: 'once!'
+			};
+
+			transporter.sendMail(mailOptions, function(error, info){
+			  if (error) {
+			    console.log(error);
+			  } else {
+			    console.log('Email sent: ' + info.response);
+			  }
+			});
 		
 			//will automatically throw an error if an email already exist within the system
 			const newUser = await db("users").returning("*").insert({

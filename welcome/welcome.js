@@ -8,9 +8,23 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+const createTable = (db) => {
+  return db.schema.createTableIfNotExists('temp_tokens', (table) => {
+    table.increments('id').primary();
+    table.string('email').notNullable();
+    table.string('name').notNullable();
+    table.string("hashpassword").notNullable();
+    table.string('token').notNullable();
+  });
+};
+
+const dropTable = (db) => {
+  return db.schema.dropTable('temp_tokens');
+};
+
 const register = (app,db,bcrypt,saltRounds) => {
 	//better to make it in the databse with a deadline
-	const validationMap = new Map(); 
+	//const validationMap = new Map(); 
 
 	app.post("/register", async (req,res) => {
 		const { name, email, password } = req.body;
@@ -21,8 +35,25 @@ const register = (app,db,bcrypt,saltRounds) => {
 				throw new Error("email already registered, please try another email", {cause: "known"});
 			}
 
+			//how to deal with error ?? 
+			const hashPassword = await bcrypt.hash(password,saltRounds);
+			if (!hashPassword) {
+				throw new Error("password not encrypted", {cause: "known"});
+			}
+
+			await createTable(db);
 			const validationToken = Math.random().toString(36).substr(2, 8);
-			validationMap.set(validationToken,{name, email, password});
+			const tempData = await db("temp_tokens").returning("*").insert({
+				email: email,
+				name: name,
+				hashpassword: hashPassword,
+				token: validationToken
+			})
+			//console.log("tempData: ", tempData);
+			if (!tempData) {
+				throw "someting went wrong with the databse";
+			}
+			//validationMap.set(validationToken,{name, email, hashPassword});
 
 			var mailOptions = {
 				from: process.env.AUTH_EMAIL_USER,
@@ -44,6 +75,7 @@ const register = (app,db,bcrypt,saltRounds) => {
 			if (error.cause === "known") {
 				res.status(400).json(error.message);
 			} else {
+				console.log(error);
 				res.status(400).json("cannot send validation message to your email address");	
 			}
 		}
@@ -52,24 +84,19 @@ const register = (app,db,bcrypt,saltRounds) => {
 	app.get("/validateEmail", async(req, res) => {
 		try {
 			const { token } = req.query;
-			if (!validationMap.has(token)) {
+			const info = await db("temp_tokens").returning("*").where("token","=",token).del();
+			if (!info.length) {
 				throw new Error("validation out of time, please try again", {cause: "known"});
 			}
 			
-			const { name, email, password } = validationMap.get(token);
-			validationMap.delete(token);
+			//console.log("info: ", info);
+			const { name, email, hashpassword } = info[0];
 			
-			//how to deal with error ?? 
-			const hash = await bcrypt.hash(password,saltRounds);
-			if (!hash) {
-				throw new Error("password not encrypted", {cause: "known"});
-			}
-
 			//will automatically throw an error if an email already exist within the system
 			const newUser = await db("users").returning("*").insert({
 				name: name,
 				email: email,
-				password: hash,
+				password: hashpassword,
 				joined: new Date() //not the best practice given that the date should be determined by the client 
 			})
 

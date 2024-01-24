@@ -25,8 +25,6 @@ const register = (app,db,bcrypt,saltRounds) => {
 			const validationToken = Math.random().toString(36).substr(2, 8);
 			validationMap.set(validationToken,{name, email, password});
 
-			console.log(validationMap.get(validationToken));
-
 			var mailOptions = {
 				from: 'seaox237@gmail.com',
 				to: email,
@@ -38,7 +36,9 @@ const register = (app,db,bcrypt,saltRounds) => {
 				if (error) {
 					throw error;
 				} else {
-					res.json("Validation email sent, please check your inbox.")	
+					res.json({
+						message: "Validation email sent, please check your inbox."
+					})	
 				}
 			});
 		} catch (error) {

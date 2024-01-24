@@ -1,16 +1,22 @@
 const express = require('express');
 //for front-end and back-end at the same IP
 const cors = require('cors'); 
+
+require('dotenv').config();
+const database_password = process.env.DATABASE_PASSWORD; 
+const database_url = process.env.DATABASE_URL;
+const database_host = process.env.DATABASE_HOST;
+
 //library for linking to the database
 const db = require('knex')({
   client: 'pg',
   connection: {
-    connectionString: "postgres://input_hours_user:7jykg1EzXBMuivb2St8eUGqcEyH2pQpc@dpg-cm1fa921hbls73ai3tg0-a.singapore-postgres.render.com/input_hours",
-    host: "dpg-cm1fa921hbls73ai3tg0-a",
+    connectionString: database_url,
+    host: database_host,
     port: 5432,
     user: "input_hours_user",
     database: "input_hours",
-    password: '7jykg1EzXBMuivb2St8eUGqcEyH2pQpc',
+    password: database_password,
     ssl: { rejectUnauthorized: false }
   }
 });

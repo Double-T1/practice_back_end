@@ -1,9 +1,10 @@
 const nodemailer = require('nodemailer');
+require('dotenv').config();
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'seaox237@gmail.com',
-    pass: 'ihtj hqsy zhhz ozli'
+    user: process.env.AUTH_EMAIL_USER,
+    pass: process.env.AUTH_EMAIL_PASS
   }
 });
 
@@ -15,21 +16,19 @@ const register = (app,db,bcrypt,saltRounds) => {
 		const { name, email, password } = req.body;
 		try {
 			//check if the email is already registered 
-			// const newUser = await db("users").("*").insert({
-			// 	name: name,
-			// 	email: email,
-			// 	password: hash,
-			// 	joined: new Date() //not the best practice given that the date should be determined by the client 
-			// })
+			const user = await db.select("*").from("users").where("email","=",email);
+			if (user.length) {
+				throw new Error("email already registered, please try another email", {cause: "known"});
+			}
 
 			const validationToken = Math.random().toString(36).substr(2, 8);
 			validationMap.set(validationToken,{name, email, password});
 
 			var mailOptions = {
-				from: 'seaox237@gmail.com',
+				from: process.env.AUTH_EMAIL_USER,
 				to: email,
 				subject: 'Email verification',
-				text: `Click the following link to validate your email: http://localhost:3000/validateEmail?token=${validationToken}`
+				text: `Click the following link to validate your email: ${process.env.BACKEND_URL}/validateEmail?token=${validationToken}`
 			};
 
 			transporter.sendMail(mailOptions, function(error, info){
@@ -42,7 +41,11 @@ const register = (app,db,bcrypt,saltRounds) => {
 				}
 			});
 		} catch (error) {
-			res.status(400).json("cannot send validation to your email address");
+			if (error.cause === "known") {
+				res.status(400).json(error.message);
+			} else {
+				res.status(400).json("cannot send validation message to your email address");	
+			}
 		}
 	})
 
@@ -71,7 +74,9 @@ const register = (app,db,bcrypt,saltRounds) => {
 			})
 
 			//has to switch back the correct link instead just a simple json file
-			res.json(newUser[0]);
+			res.redirect(`${process.env.FRONTEND_URL}`);
+
+			//res.json(newUser[0]);
 		} catch(error) {
 			if (error.cause === "known") {
 				res.status(400).json(error.message);
